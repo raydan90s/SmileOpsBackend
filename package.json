@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "module-alias": "^2.2.3",
+    "morgan": "^1.10.1",
+    "pg": "^8.16.3"
+  },
+  "_moduleAliases": {
+    "@controllers": "src/controllers",
+    "@models": "src/models",
+    "@routes": "src/routes",
+    "@services": "src/services",
+    "@config": "src/config",
+    "@middlewares": "src/middlewares",
+    "@utils": "src/utils"
+  },
+  "scripts": {
+    "start": "docker-compose -f ./docker/docker-compose.yml up -d && node src/server.js",
+    "migrate": "npx knex migrate:latest",
+    "rollback": "npx knex migrate:rollback",
+    "seed": "npx knex seed:run",
+    "start:docker": "npm run migrate && npm start"
+  }
+}
