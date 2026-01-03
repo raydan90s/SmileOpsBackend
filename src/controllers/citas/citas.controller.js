@@ -1,9 +1,9 @@
-const { 
-  createCita, 
-  getAllCitas, 
-  getCitaById, 
-  updateEstadoCita, 
-  deleteCita 
+const {
+  createCita,
+  getAllCitas,
+  getCitaById,
+  updateEstadoCita,
+  deleteCita
 } = require('@models/citas/citas.model');
 
 const fetchAllCitas = async (req, res) => {
@@ -35,6 +35,7 @@ const getCitaByIdController = async (req, res) => {
 const createCitaController = async (req, res) => {
   try {
     const cita = req.body;
+    console.log(cita);
 
     if (!cita.iidpaciente || !cita.iiddoctor || !cita.iidespecialidad || !cita.dfechacita || !cita.choracita) {
       return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
