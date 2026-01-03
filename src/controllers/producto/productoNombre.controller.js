@@ -3,7 +3,8 @@ const {
     getProductoNombreById,
     createProductoNombre,
     updateProductoNombre,
-    deleteProductoNombre
+    deleteProductoNombre,
+    activateProductoNombre
 } = require('@models/producto/productoNombre.model');
 
 const fetchAllProductosNombre = async (req, res) => {
@@ -96,10 +97,29 @@ const deleteProductoNombreController = async (req, res) => {
     }
 };
 
+const activateProductoNombreController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const productoActivado = await activateProductoNombre(parseInt(id));
+
+        res.status(200).json({
+            success: true,
+            message: 'Producto activado exitosamente',
+            data: productoActivado
+        });
+    } catch (err) {
+        console.error('Error activando producto nombre:', err);
+        if (err.message === 'Producto no encontrado') {
+            return res.status(404).json({ success: false, message: err.message });
+        }
+        res.status(500).json({ success: false, message: 'Error al activar nombre de producto' });
+    }
+};
 module.exports = {
     fetchAllProductosNombre,
     getProductoNombreByIdController,
     createProductoNombreController,
     updateProductoNombreController,
-    deleteProductoNombreController
+    deleteProductoNombreController,
+    activateProductoNombreController
 };

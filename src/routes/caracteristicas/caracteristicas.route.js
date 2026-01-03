@@ -7,7 +7,8 @@ const {
   fetchCaracteristicasActivas,
   crearCaracteristicaController,
   actualizarCaracteristicaController,
-  eliminarCaracteristicaController
+  eliminarCaracteristicaController,
+  activarCaracteristicaController
 } = require('@controllers/caracteristicas/caracteristicas.controller');
 
 router.get('/', fetchAllCaracteristicas);
@@ -17,5 +18,5 @@ router.get('/:id', getCaracteristicaByIdController);
 router.post('/', crearCaracteristicaController);
 router.put('/:id', actualizarCaracteristicaController);
 router.delete('/:id', eliminarCaracteristicaController);
-
+router.put('/:id/activar', activarCaracteristicaController);
 module.exports = router;

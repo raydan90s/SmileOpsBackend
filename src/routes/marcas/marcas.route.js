@@ -7,7 +7,8 @@ const {
   fetchMarcasActivas,
   crearMarcaController,
   actualizarMarcaController,
-  eliminarMarcaController
+  eliminarMarcaController,
+  activarMarcaController
 } = require('@controllers/marcas/marcas.controller');
 
 router.get('/', fetchAllMarcas);
@@ -17,5 +18,5 @@ router.get('/:id', getMarcaByIdController);
 router.post('/', crearMarcaController);
 router.put('/:id', actualizarMarcaController);
 router.delete('/:id', eliminarMarcaController);
-
+router.put('/:id/activar', activarMarcaController);
 module.exports = router;

@@ -32,7 +32,6 @@ const getAllProductos = async () => {
     LEFT JOIN public.unidades_medida uc ON ip.unidad_compra = uc.iidunidad
     LEFT JOIN public.unidades_medida ucon ON ip.unidad_consumo = ucon.iidunidad
     LEFT JOIN public.tbl_iva iva ON ip.iid_iva = iva.iid_iva
-    WHERE ip.estado = true
     ORDER BY ip.codigo_producto ASC
   `;
   const { rows } = await pool.query(query);
@@ -366,6 +365,18 @@ const getNextCodigoProducto = async (iid_subclasificacion) => {
   }
 };
 
+const activateProducto = async (iid_inventario) => {
+  const query = `
+      UPDATE public.tbl_inventario_productos
+      SET estado = true
+      WHERE iid_inventario = $1
+      RETURNING *;
+    `;
+
+  const { rows } = await pool.query(query, [iid_inventario]);
+  return rows[0] || null;
+};
+
 module.exports = {
   getAllProductos,
   getProductoById,
@@ -376,5 +387,6 @@ module.exports = {
   createProducto,
   updateProducto,
   deleteProducto,
-  getNextCodigoProducto
+  getNextCodigoProducto,
+  activateProducto
 };

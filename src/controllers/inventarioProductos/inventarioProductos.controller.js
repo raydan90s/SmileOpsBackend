@@ -8,7 +8,8 @@ const {
   createProducto,
   updateProducto,
   deleteProducto,
-  getNextCodigoProducto
+  getNextCodigoProducto,
+  activateProducto
 } = require('@models/inventarioProductos/inventarioProductos.model');
 
 const fetchAllProductos = async (req, res) => {
@@ -254,16 +255,16 @@ const eliminarProductoController = async (req, res) => {
 const getNextCodigoProductoController = async (req, res) => {
   try {
     const { iid_subclasificacion } = req.params;
-    
+
     if (!iid_subclasificacion) {
       return res.status(400).json({
         success: false,
         message: 'El ID de subclasificación es requerido'
       });
     }
-    
+
     const nuevoCodigo = await getNextCodigoProducto(parseInt(iid_subclasificacion));
-    
+
     res.status(200).json({
       success: true,
       codigo: nuevoCodigo
@@ -273,6 +274,34 @@ const getNextCodigoProductoController = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al generar código de producto'
+    });
+  }
+};
+
+const activarProductoController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const productoActivado = await activateProducto(id);
+
+    if (!productoActivado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Producto no encontrado'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Producto activado exitosamente',
+      data: productoActivado
+    });
+  } catch (error) {
+    console.error('Error al activar producto:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Error al activar producto',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -287,5 +316,6 @@ module.exports = {
   crearProductoController,
   actualizarProductoController,
   eliminarProductoController,
-  getNextCodigoProductoController
+  getNextCodigoProductoController,
+  activarProductoController
 };

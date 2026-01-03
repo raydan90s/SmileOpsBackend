@@ -10,7 +10,8 @@ const {
   crearProductoController,
   actualizarProductoController,
   eliminarProductoController,
-  getNextCodigoProductoController
+  getNextCodigoProductoController,
+  activarProductoController
 } = require('@controllers/inventarioProductos/inventarioProductos.controller');
 
 router.get('/', fetchAllProductos);
@@ -24,5 +25,6 @@ router.post('/', crearProductoController);
 router.put('/:id', actualizarProductoController);
 router.delete('/:id', eliminarProductoController);
 router.get('/next-codigo/:iid_subclasificacion', getNextCodigoProductoController);
+router.put('/:id/activar', activarProductoController);
 
 module.exports = router;

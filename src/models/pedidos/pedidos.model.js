@@ -663,20 +663,46 @@ const registrarFacturaPedido = async (iid_pedido, facturaData) => {
 
     const facturaQuery = `
       INSERT INTO tbl_facturas_compra (
-        v_numero_factura, d_fecha_factura,
-        n_subtotal, n_iva, n_total, v_observaciones
+        iid_entidad_facturadora,
+        v_numero_factura,
+        v_clave_acceso,
+        v_numero_autorizacion,
+        d_fecha_factura,
+        d_fecha_autorizacion,
+        n_subtotal_0,
+        n_subtotal_iva,
+        n_subtotal,
+        n_iva,
+        n_descuento,
+        n_total,
+        iid_usuario_registra,
+        v_ruta_xml,
+        v_ruta_pdf,
+        v_observaciones
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING *;
     `;
+
     const facturaValues = [
+      facturaData.iid_entidad_facturadora,
       facturaData.v_numero_factura,
+      facturaData.v_clave_acceso || null,
+      facturaData.v_numero_autorizacion || null,
       facturaData.d_fecha_factura,
+      facturaData.d_fecha_autorizacion || null,
+      facturaData.n_subtotal_0,
+      facturaData.n_subtotal_iva,
       facturaData.n_subtotal,
       facturaData.n_iva,
+      facturaData.n_descuento || 0,
       facturaData.n_total,
+      facturaData.iid_usuario_registra,
+      facturaData.v_ruta_xml || null,
+      facturaData.v_ruta_pdf || null,
       facturaData.v_observaciones || null
     ];
+
     const { rows: facturaRows } = await client.query(facturaQuery, facturaValues);
     const nuevaFactura = facturaRows[0];
 
@@ -721,6 +747,7 @@ const registrarFacturaPedido = async (iid_pedido, facturaData) => {
     return getPedidoById(iid_pedido);
   } catch (error) {
     await client.query('ROLLBACK');
+    console.error('Error registrando factura:', error);
     throw error;
   } finally {
     client.release();

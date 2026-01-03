@@ -5,7 +5,8 @@ const {
   getMarcasActivas,
   createMarca,
   updateMarca,
-  deleteMarca
+  deleteMarca,
+  activateMarca
 } = require('@models/marcas/marcas.model');
 
 const fetchAllMarcas = async (req, res) => {
@@ -94,8 +95,8 @@ const crearMarcaController = async (req, res) => {
   try {
     const marcaData = req.body;
 
-    if (!marcaData.vnombre_marca || 
-        marcaData.vnombre_marca.trim() === '') {
+    if (!marcaData.vnombre_marca ||
+      marcaData.vnombre_marca.trim() === '') {
       return res.status(400).json({
         success: false,
         message: 'El nombre de la marca es requerido'
@@ -192,6 +193,34 @@ const eliminarMarcaController = async (req, res) => {
   }
 };
 
+const activarMarcaController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const marcaActivada = await activateMarca(id);
+
+    if (!marcaActivada) {
+      return res.status(404).json({
+        success: false,
+        message: 'Marca no encontrada'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Marca activada exitosamente',
+      data: marcaActivada
+    });
+  } catch (error) {
+    console.error('Error al activar marca:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Error al activar marca',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   fetchAllMarcas,
   getMarcaByIdController,
@@ -199,5 +228,6 @@ module.exports = {
   fetchMarcasActivas,
   crearMarcaController,
   actualizarMarcaController,
-  eliminarMarcaController
+  eliminarMarcaController,
+  activarMarcaController
 };

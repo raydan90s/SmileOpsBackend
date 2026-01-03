@@ -129,6 +129,18 @@ const deleteCaracteristica = async (id) => {
   return rows[0] || null;
 };
 
+const activateCaracteristica = async (id) => {
+  const query = `
+    UPDATE public.tbl_caracteristicas
+    SET bactivo = true
+    WHERE iid_caracteristica = $1
+    RETURNING *;
+  `;
+
+  const { rows } = await pool.query(query, [id]);
+  return rows[0] || null;
+};
+
 module.exports = {
   getAllCaracteristicas,
   getCaracteristicaById,
@@ -136,5 +148,6 @@ module.exports = {
   getCaracteristicasActivas,
   createCaracteristica,
   updateCaracteristica,
-  deleteCaracteristica
+  deleteCaracteristica,
+  activateCaracteristica
 };

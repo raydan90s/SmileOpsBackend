@@ -130,6 +130,18 @@ const deleteMarca = async (id) => {
   return rows[0] || null;
 };
 
+const activateMarca = async (id) => {
+  const query = `
+      UPDATE public.tbl_marcas
+      SET bactivo = true
+      WHERE iid_marca = $1
+      RETURNING *;
+    `;
+
+  const { rows } = await pool.query(query, [id]);
+  return rows[0] || null;
+};
+
 module.exports = {
   getAllMarcas,
   getMarcaById,
@@ -137,5 +149,6 @@ module.exports = {
   getMarcasActivas,
   createMarca,
   updateMarca,
-  deleteMarca
+  deleteMarca,
+  activateMarca
 };

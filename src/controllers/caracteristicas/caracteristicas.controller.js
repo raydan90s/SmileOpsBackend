@@ -5,7 +5,8 @@ const {
   getCaracteristicasActivas,
   createCaracteristica,
   updateCaracteristica,
-  deleteCaracteristica
+  deleteCaracteristica,
+  activateCaracteristica
 } = require('@models/caracteristicas/caracteristicas.model');
 
 const fetchAllCaracteristicas = async (req, res) => {
@@ -192,6 +193,33 @@ const eliminarCaracteristicaController = async (req, res) => {
   }
 };
 
+const activarCaracteristicaController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const caracteristicaActivada = await activateCaracteristica(id);
+
+    if (!caracteristicaActivada) {
+      return res.status(404).json({
+        success: false,
+        message: 'Característica no encontrada'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Característica activada exitosamente',
+      data: caracteristicaActivada
+    });
+  } catch (error) {
+    console.error('Error al activar característica:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al activar característica',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   fetchAllCaracteristicas,
   getCaracteristicaByIdController,
@@ -199,5 +227,6 @@ module.exports = {
   fetchCaracteristicasActivas,
   crearCaracteristicaController,
   actualizarCaracteristicaController,
-  eliminarCaracteristicaController
+  eliminarCaracteristicaController,
+  activarCaracteristicaController
 };

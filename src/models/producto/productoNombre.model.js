@@ -81,10 +81,25 @@ const deleteProductoNombre = async (iid_nombre) => {
   return rows[0];
 };
 
+const activateProductoNombre = async (iid_nombre) => {
+  const query = `
+    UPDATE public.tbl_productos
+    SET bactivo = true
+    WHERE iid_nombre = $1
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [iid_nombre]);
+
+  if (rows.length === 0) throw new Error('Producto no encontrado');
+
+  return rows[0];
+};
+
 module.exports = {
   getAllProductosNombre,
   getProductoNombreById,
   createProductoNombre,
   updateProductoNombre,
-  deleteProductoNombre
+  deleteProductoNombre,
+  activateProductoNombre
 };
