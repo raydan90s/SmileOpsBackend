@@ -8,10 +8,6 @@ const {
   deleteEstadoOperativo
 } = require('@models/estados-operativos/estados-operativos.model');
 
-// ============================================
-// CONTROLADORES DE SOLO LECTURA
-// ============================================
-
 const fetchAllEstadosOperativos = async (req, res) => {
   try {
     const estados = await getAllEstadosOperativos();
@@ -94,15 +90,9 @@ const fetchEstadosOperativosActivos = async (req, res) => {
   }
 };
 
-// ============================================
-// CONTROLADORES DE ESCRITURA
-// ============================================
-
 const crearEstadoOperativoController = async (req, res) => {
   try {
     const estadoData = req.body;
-
-    // Validación básica
     if (!estadoData.vnombre_estado || estadoData.vnombre_estado.trim() === '') {
       return res.status(400).json({
         success: false,

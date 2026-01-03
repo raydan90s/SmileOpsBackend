@@ -661,7 +661,6 @@ const registrarFacturaPedido = async (iid_pedido, facturaData) => {
       throw new Error('Pedido no encontrado');
     }
 
-    // Primero crear la factura en tbl_facturas_compra
     const facturaQuery = `
       INSERT INTO tbl_facturas_compra (
         v_numero_factura, d_fecha_factura,
@@ -681,7 +680,6 @@ const registrarFacturaPedido = async (iid_pedido, facturaData) => {
     const { rows: facturaRows } = await client.query(facturaQuery, facturaValues);
     const nuevaFactura = facturaRows[0];
 
-    // Luego crear la relación en tbl_rel_factura_pedido
     const relacionQuery = `
       INSERT INTO tbl_rel_factura_pedido (
         iid_factura_compra, iid_pedido

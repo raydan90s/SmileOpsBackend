@@ -3,16 +3,12 @@ const cors = require('cors');
 const pool = require('./config/dbSupabase');
 const morgan = require('morgan');
 const { authMiddleware } = require('@middlewares/auth.middleware');
-const { auditMiddleware } = require('@middlewares/auditoria.middleware');
 const pacienteRoutes = require('@routes/paciente/paciente.route');
 const usuarioRoutes = require('@routes/usuario/usuario.route');
 const doctorRoutes = require('@routes/doctor/doctor.route');
-const detalleTratamientoPacienteRoutes = require('@routes/detalleTratamientoPaciente/detalleTratamientoPaciente.routes');
 const paisRoutes = require('@routes/paises/paises.route');
 const provinciaRoutes = require('@routes/provincia/provincia.routes');
 const ciudadRoutes = require('@routes/ciudades/ciudades.route');
-const tratamientoDetalleRoutes = require('@routes/tratamientoDetalle/tratamientoDetalle.routes');
-const tratamientosRoutes = require('@routes/tratamientos/tratamientos.route');
 const citasRoutes = require('@routes/citas/citas.routes');
 const consultoriosRoutes = require('@routes/consultorios/consultorios.routes');
 const proveedoresRoutes = require('@routes/proveedores/proveedores.routes');
@@ -22,7 +18,6 @@ const inventarioProductosRoutes = require('@routes/inventarioProductos/inventari
 const sriRoutes = require('@routes/proveedores/sri.routes');
 const pedidosRoutes = require('@routes/pedidos/pedidos.routes');
 const productoNombreRoutes = require('@routes/productos/productoNombre.routes');
-const requisicionRoutes = require('@routes/requisicion/requisicion.routes');
 const entidadesFacturadorasRoutes = require('@routes/entidadesFacturadoras/entidadesFacturadoras.routes');
 const movimientosEntregadosRoutes = require('@routes/movimientosEntregados/movimientosEntregados.routes');
 const caracteristicasRoutes = require('@routes/caracteristicas/caracteristicas.route');
@@ -30,18 +25,18 @@ const marcasRoutes = require('@routes/marcas/marcas.route');
 const clasificacionRoutes = require('@routes/clasificacion/clasificacion.routes');
 const subclasificacionRoutes = require('@routes/subclasificacion/subclasificacion.routes');
 const unidadesRoutes = require('@routes/unidades/unidades.routes');
-const activosFijosRoutes = require('@routes/activosFijos/activosFijos.routes');
-
-const categoriasActivosRoutes = require('@routes/categoriaActivo/categoriaActivo.routes');
-const tiposInstrumentalRoutes = require('@routes/tipoInstrumental/tipoInstrumental.routes');
-const modelosRoutes = require('@routes/modelo/modelo.routes');
 
 const app = express();
 
 app.use(morgan('dev'));
 
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: [
+    'http://localhost:5173',
+    'http://192.168.1.10:8081',
+    'exp://192.168.1.10:8081',
+    'http://192.168.1.10:3000',
+  ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
@@ -55,7 +50,6 @@ app.use((req, res, next) => {
 });
 
 app.use(authMiddleware);
-app.use(auditMiddleware);
 
 app.get('/', async (req, res) => {
   try {
@@ -73,12 +67,9 @@ app.get('/', async (req, res) => {
 app.use('/login', usuarioRoutes);
 app.use('/pacientes', pacienteRoutes);
 app.use('/doctores', doctorRoutes);
-app.use('/detalles', detalleTratamientoPacienteRoutes);
 app.use('/paises', paisRoutes);
 app.use('/provincias', provinciaRoutes);
 app.use('/ciudades', ciudadRoutes);
-app.use('/tratamientos_detalle', tratamientoDetalleRoutes);
-app.use('/tratamientos', tratamientosRoutes);
 app.use('/citas', citasRoutes);
 app.use('/consultorios', consultoriosRoutes);
 app.use('/proveedores', proveedoresRoutes);
@@ -88,7 +79,6 @@ app.use('/inventario-productos', inventarioProductosRoutes);
 app.use('/sri', sriRoutes);
 app.use('/pedidos', pedidosRoutes);
 app.use('/producto/nombres', productoNombreRoutes);
-app.use('/requisicion', requisicionRoutes);
 app.use('/entidades/facturadoras', entidadesFacturadorasRoutes);
 app.use('/movimientos/entregados', movimientosEntregadosRoutes);
 app.use('/caracteristicas', caracteristicasRoutes);
@@ -96,10 +86,6 @@ app.use('/marcas', marcasRoutes);
 app.use('/clasificaciones', clasificacionRoutes);
 app.use('/subclasificaciones', subclasificacionRoutes);
 app.use('/unidades', unidadesRoutes);
-app.use('/activos-fijos', activosFijosRoutes);
-app.use('/categorias-activos', categoriasActivosRoutes);
-app.use('/tipos-instrumental', tiposInstrumentalRoutes);
-app.use('/modelos', modelosRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error global:', err);

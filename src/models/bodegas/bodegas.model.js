@@ -1,5 +1,4 @@
 const pool = require('@config/dbSupabase');
-const { executeWithAudit } = require('@middlewares/auditoria.middleware');
 
 const getAllBodegas = async (iid_tipo_bodega) => {
   let query = `
@@ -61,62 +60,54 @@ const getBodegasPrincipales = async () => {
   return rows;
 };
 
-// ============================================
-// NUEVAS OPERACIONES DE ESCRITURA (Auditoría)
-// ============================================
+const createBodega = async (bodega) => {
+  const query = `
+    INSERT INTO public.tbl_bodegas (vnombre_bodega, iid_tipo_bodega, bactivo)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  const values = [
+    bodega.vnombre_bodega,
+    bodega.iid_tipo_bodega,
+    bodega.bactivo !== undefined ? bodega.bactivo : true
+  ];
 
-const createBodega = async (bodega, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      INSERT INTO public.tbl_bodegas (vnombre_bodega, iid_tipo_bodega, bactivo)
-      VALUES ($1, $2, $3)
-      RETURNING *;
-    `;
-    const values = [
-      bodega.vnombre_bodega,
-      bodega.iid_tipo_bodega,
-      bodega.bactivo !== undefined ? bodega.bactivo : true
-    ];
-    const { rows } = await client.query(query, values);
-    return rows[0];
-  });
+  const { rows } = await pool.query(query, values);
+  return rows[0];
 };
 
-const updateBodega = async (iid_bodega, bodega, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      UPDATE public.tbl_bodegas
-      SET 
-        vnombre_bodega = COALESCE($2, vnombre_bodega),
-        iid_tipo_bodega = COALESCE($3, iid_tipo_bodega),
-        bactivo = COALESCE($4, bactivo)
-      WHERE iid_bodega = $1
-      RETURNING *;
-    `;
-    const values = [
-      iid_bodega,
-      bodega.vnombre_bodega,
-      bodega.iid_tipo_bodega,
-      bodega.bactivo
-    ];
-    const { rows } = await client.query(query, values);
+const updateBodega = async (iid_bodega, bodega) => {
+  const query = `
+    UPDATE public.tbl_bodegas
+    SET 
+      vnombre_bodega = COALESCE($2, vnombre_bodega),
+      iid_tipo_bodega = COALESCE($3, iid_tipo_bodega),
+      bactivo = COALESCE($4, bactivo)
+    WHERE iid_bodega = $1
+    RETURNING *;
+  `;
+  const values = [
+    iid_bodega,
+    bodega.vnombre_bodega,
+    bodega.iid_tipo_bodega,
+    bodega.bactivo
+  ];
 
-    if (rows.length === 0) throw new Error('Bodega no encontrada');
+  const { rows } = await pool.query(query, values);
 
-    return rows[0];
-  });
+  if (rows.length === 0) throw new Error('Bodega no encontrada');
+
+  return rows[0];
 };
 
-const deleteBodega = async (iid_bodega, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    // Nota: Si prefieres borrado lógico, cambia esto por un UPDATE bactivo = false
-    const query = `DELETE FROM public.tbl_bodegas WHERE iid_bodega = $1 RETURNING *;`;
-    const { rows } = await client.query(query, [iid_bodega]);
+const deleteBodega = async (iid_bodega) => {
+  const query = `DELETE FROM public.tbl_bodegas WHERE iid_bodega = $1 RETURNING *;`;
 
-    if (rows.length === 0) throw new Error('Bodega no encontrada');
+  const { rows } = await pool.query(query, [iid_bodega]);
 
-    return rows[0];
-  });
+  if (rows.length === 0) throw new Error('Bodega no encontrada');
+
+  return rows[0];
 };
 
 module.exports = {

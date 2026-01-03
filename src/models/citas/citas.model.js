@@ -1,5 +1,4 @@
 const pool = require('@config/dbSupabase');
-const { executeWithAudit } = require('@middlewares/auditoria.middleware');
 
 const getAllCitas = async () => {
   const query = `
@@ -45,62 +44,54 @@ const getCitaById = async (iidcita) => {
   return rows[0] || null;
 };
 
-const createCita = async (cita, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      INSERT INTO public.odontblcitamedica (
-        iidpaciente, iiddoctor, iidconsultorio, iidespecialidad, 
-        dfechacita, choracita, itiempo, cestado
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `;
-    const values = [
-      cita.iidpaciente,
-      cita.iiddoctor,
-      cita.iidconsultorio,
-      cita.iidespecialidad,
-      cita.dfechacita,
-      cita.choracita,
-      cita.itiempo,
-      cita.cestado || 'P'
-    ];
-    const { rows } = await client.query(query, values);
-    return rows[0];
-  });
+const createCita = async (cita) => {
+  const query = `
+    INSERT INTO public.odontblcitamedica (
+      iidpaciente, iiddoctor, iidconsultorio, iidespecialidad, 
+      dfechacita, choracita, itiempo, cestado
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;
+  `;
+  const values = [
+    cita.iidpaciente,
+    cita.iiddoctor,
+    cita.iidconsultorio,
+    cita.iidespecialidad,
+    cita.dfechacita,
+    cita.choracita,
+    cita.itiempo,
+    cita.cestado || 'P'
+  ];
+  const { rows } = await pool.query(query, values);
+  return rows[0];
 };
 
-const updateEstadoCita = async (iidcita, cestado, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const checkQuery = 'SELECT iidcita FROM public.odontblcitamedica WHERE iidcita = $1';
-    const checkRes = await client.query(checkQuery, [iidcita]);
-    
-    if (checkRes.rowCount === 0) throw new Error('Cita no encontrada');
+const updateEstadoCita = async (iidcita, cestado) => {
+  const query = `
+    UPDATE public.odontblcitamedica
+    SET cestado = $2
+    WHERE iidcita = $1
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [iidcita, cestado]);
 
-    const query = `
-      UPDATE public.odontblcitamedica
-      SET cestado = $2
-      WHERE iidcita = $1
-      RETURNING *;
-    `;
-    const { rows } = await client.query(query, [iidcita, cestado]);
-    return rows[0];
-  });
+  if (rows.length === 0) throw new Error('Cita no encontrada');
+
+  return rows[0];
 };
 
-const deleteCita = async (iidcita, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      DELETE FROM public.odontblcitamedica
-      WHERE iidcita = $1
-      RETURNING *;
-    `;
-    const { rows } = await client.query(query, [iidcita]);
-    
-    if (rows.length === 0) throw new Error('Cita no encontrada');
+const deleteCita = async (iidcita) => {
+  const query = `
+    DELETE FROM public.odontblcitamedica
+    WHERE iidcita = $1
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [iidcita]);
 
-    return rows[0];
-  });
+  if (rows.length === 0) throw new Error('Cita no encontrada');
+
+  return rows[0];
 };
 
 module.exports = {

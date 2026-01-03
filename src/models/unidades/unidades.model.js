@@ -59,18 +59,14 @@ const getUnidadesActivas = async () => {
 };
 
 const createUnidad = async (unidadData) => {
-  // Verificar si existe una unidad inactiva con el mismo nombre
   const checkQuery = `
     SELECT iidunidad, bactivo 
     FROM public.unidades_medida 
     WHERE vnombreunidad = $1
   `;
-  
-  console.log('🔍 Buscando unidad:', unidadData.vnombreunidad);
-  const checkResult = await pool.query(checkQuery, [unidadData.vnombreunidad]);
-  console.log('🔍 Resultado búsqueda:', checkResult.rows);
 
-  // Si existe y está inactiva, reactivarla
+  const checkResult = await pool.query(checkQuery, [unidadData.vnombreunidad]);
+
   if (checkResult.rows.length > 0 && !checkResult.rows[0].bactivo) {
     const updateQuery = `
       UPDATE public.unidades_medida
@@ -87,14 +83,11 @@ const createUnidad = async (unidadData) => {
     return rows[0];
   }
 
-  // Si existe y está activa, lanzar error
   if (checkResult.rows.length > 0 && checkResult.rows[0].bactivo) {
     const error = new Error('Ya existe una unidad activa con ese nombre');
     error.code = '23505';
     throw error;
   }
-
-  // Si no existe, crear nueva
   const query = `
     INSERT INTO public.unidades_medida (
       vnombreunidad,

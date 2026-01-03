@@ -1,7 +1,7 @@
 const pool = require('@config/dbSupabase');
 
 const getPedidosRecibidosParaReporte = async (filters = {}) => {
-    let query = `
+  let query = `
     SELECT 
       p.iid_pedido,
       p.d_fecha_solicitud,
@@ -94,43 +94,43 @@ const getPedidosRecibidosParaReporte = async (filters = {}) => {
     WHERE p.iid_estado_pedido = 5
   `;
 
-    const params = [];
-    let paramCounter = 1;
+  const params = [];
+  let paramCounter = 1;
 
-    if (filters.iid_bodega_destino && filters.iid_bodega_destino !== '0') {
-        query += ` AND p.iid_bodega_destino = $${paramCounter}`;
-        params.push(parseInt(filters.iid_bodega_destino));
-        paramCounter++;
-    }
+  if (filters.iid_bodega_destino && filters.iid_bodega_destino !== '0') {
+    query += ` AND p.iid_bodega_destino = $${paramCounter}`;
+    params.push(parseInt(filters.iid_bodega_destino));
+    paramCounter++;
+  }
 
-    query += ` ORDER BY p.iid_pedido DESC`;
+  query += ` ORDER BY p.iid_pedido DESC`;
 
-    const { rows } = await pool.query(query, params);
+  const { rows } = await pool.query(query, params);
 
-    let filteredRows = rows;
+  let filteredRows = rows;
 
-    if (filters.fecha_desde) {
-        const fechaDesde = new Date(filters.fecha_desde);
-        filteredRows = filteredRows.filter(row => {
-            const fechaEntrega = new Date(row.d_fecha_entrega);
-            return fechaEntrega >= fechaDesde;
-        });
-    }
+  if (filters.fecha_desde) {
+    const fechaDesde = new Date(filters.fecha_desde);
+    filteredRows = filteredRows.filter(row => {
+      const fechaEntrega = new Date(row.d_fecha_entrega);
+      return fechaEntrega >= fechaDesde;
+    });
+  }
 
-    if (filters.fecha_hasta) {
-        const fechaHasta = new Date(filters.fecha_hasta);
-        fechaHasta.setHours(23, 59, 59, 999); // Incluir todo el día
-        filteredRows = filteredRows.filter(row => {
-            const fechaEntrega = new Date(row.d_fecha_entrega);
-            return fechaEntrega <= fechaHasta;
-        });
-    }
+  if (filters.fecha_hasta) {
+    const fechaHasta = new Date(filters.fecha_hasta);
+    fechaHasta.setHours(23, 59, 59, 999);
+    filteredRows = filteredRows.filter(row => {
+      const fechaEntrega = new Date(row.d_fecha_entrega);
+      return fechaEntrega <= fechaHasta;
+    });
+  }
 
-    return filteredRows;
+  return filteredRows;
 };
 
 const getRequisicionesEntregadasParaReporte = async (filters = {}) => {
-    let query = `
+  let query = `
     SELECT 
       r.iid_requisicion,
       r.d_fecha_solicitud,
@@ -184,35 +184,35 @@ const getRequisicionesEntregadasParaReporte = async (filters = {}) => {
     WHERE r.iid_estado_requisicion = 4
   `;
 
-    const params = [];
-    let paramCounter = 1;
+  const params = [];
+  let paramCounter = 1;
 
-    if (filters.iid_bodega && filters.iid_bodega !== '0') {
-        query += ` AND (r.iid_bodega_solicita = $${paramCounter} OR r.iid_bodega_origen = $${paramCounter})`;
-        params.push(parseInt(filters.iid_bodega));
-        paramCounter++;
-    }
+  if (filters.iid_bodega && filters.iid_bodega !== '0') {
+    query += ` AND (r.iid_bodega_solicita = $${paramCounter} OR r.iid_bodega_origen = $${paramCounter})`;
+    params.push(parseInt(filters.iid_bodega));
+    paramCounter++;
+  }
 
-    if (filters.fecha_desde) {
-        query += ` AND r.d_fecha_entrega >= $${paramCounter}::timestamp`;
-        params.push(filters.fecha_desde);
-        paramCounter++;
-    }
+  if (filters.fecha_desde) {
+    query += ` AND r.d_fecha_entrega >= $${paramCounter}::timestamp`;
+    params.push(filters.fecha_desde);
+    paramCounter++;
+  }
 
-    if (filters.fecha_hasta) {
-        query += ` AND r.d_fecha_entrega <= $${paramCounter}::timestamp`;
-        params.push(filters.fecha_hasta);
-        paramCounter++;
-    }
+  if (filters.fecha_hasta) {
+    query += ` AND r.d_fecha_entrega <= $${paramCounter}::timestamp`;
+    params.push(filters.fecha_hasta);
+    paramCounter++;
+  }
 
-    query += ` ORDER BY r.d_fecha_entrega DESC`;
+  query += ` ORDER BY r.d_fecha_entrega DESC`;
 
-    const { rows } = await pool.query(query, params);
+  const { rows } = await pool.query(query, params);
 
-    return rows;
+  return rows;
 };
 
 module.exports = {
-    getPedidosRecibidosParaReporte,
-    getRequisicionesEntregadasParaReporte
+  getPedidosRecibidosParaReporte,
+  getRequisicionesEntregadasParaReporte
 };

@@ -1,7 +1,7 @@
-  const pool = require('@config/dbSupabase');
+const pool = require('@config/dbSupabase');
 
-  const getAllMarcas = async () => {
-    const query = `
+const getAllMarcas = async () => {
+  const query = `
       SELECT 
         iid_marca,
         vnombre_marca,
@@ -9,12 +9,12 @@
       FROM public.tbl_marcas
       ORDER BY vnombre_marca ASC
     `;
-    const { rows } = await pool.query(query);
-    return rows;
-  };
+  const { rows } = await pool.query(query);
+  return rows;
+};
 
-  const getMarcaById = async (id) => {
-    const query = `
+const getMarcaById = async (id) => {
+  const query = `
       SELECT 
         iid_marca,
         vnombre_marca,
@@ -22,12 +22,12 @@
       FROM public.tbl_marcas
       WHERE iid_marca = $1
     `;
-    const { rows } = await pool.query(query, [id]);
-    return rows[0] || null;
-  };
+  const { rows } = await pool.query(query, [id]);
+  return rows[0] || null;
+};
 
-  const getMarcaByNombre = async (nombre) => {
-    const query = `
+const getMarcaByNombre = async (nombre) => {
+  const query = `
       SELECT 
         iid_marca,
         vnombre_marca,
@@ -36,12 +36,12 @@
       WHERE vnombre_marca ILIKE $1
       ORDER BY iid_marca ASC
     `;
-    const { rows } = await pool.query(query, [`%${nombre}%`]);
-    return rows;
-  };
+  const { rows } = await pool.query(query, [`%${nombre}%`]);
+  return rows;
+};
 
-  const getMarcasActivas = async () => {
-    const query = `
+const getMarcasActivas = async () => {
+  const query = `
       SELECT 
         iid_marca,
         vnombre_marca,
@@ -50,43 +50,37 @@
       WHERE bactivo = true
       ORDER BY vnombre_marca ASC
     `;
-    const { rows } = await pool.query(query);
-    return rows;
-  };
+  const { rows } = await pool.query(query);
+  return rows;
+};
 
-  const createMarca = async (marcaData) => {
-    // Verificar si existe una marca inactiva con el mismo nombre
-    const checkQuery = `
+const createMarca = async (marcaData) => {
+  const checkQuery = `
       SELECT iid_marca, bactivo 
       FROM public.tbl_marcas 
       WHERE vnombre_marca = $1
     `;
-    
-    console.log('🔍 Buscando marca:', marcaData.vnombre_marca);
-    const checkResult = await pool.query(checkQuery, [marcaData.vnombre_marca]);
-    console.log('🔍 Resultado búsqueda:', checkResult.rows);
 
-    // Si existe y está inactiva, reactivarla
-    if (checkResult.rows.length > 0 && !checkResult.rows[0].bactivo) {
-      const updateQuery = `
+  const checkResult = await pool.query(checkQuery, [marcaData.vnombre_marca]);
+
+  if (checkResult.rows.length > 0 && !checkResult.rows[0].bactivo) {
+    const updateQuery = `
         UPDATE public.tbl_marcas
         SET bactivo = true
         WHERE iid_marca = $1
         RETURNING *;
       `;
-      const { rows } = await pool.query(updateQuery, [checkResult.rows[0].iid_marca]);
-      return rows[0];
-    }
+    const { rows } = await pool.query(updateQuery, [checkResult.rows[0].iid_marca]);
+    return rows[0];
+  }
 
-    // Si existe y está activa, lanzar error
-    if (checkResult.rows.length > 0 && checkResult.rows[0].bactivo) {
-      const error = new Error('Ya existe una marca activa con ese nombre');
-      error.code = '23505';
-      throw error;
-    }
+  if (checkResult.rows.length > 0 && checkResult.rows[0].bactivo) {
+    const error = new Error('Ya existe una marca activa con ese nombre');
+    error.code = '23505';
+    throw error;
+  }
 
-    // Si no existe, crear nueva
-    const query = `
+  const query = `
       INSERT INTO public.tbl_marcas (
         vnombre_marca,
         bactivo
@@ -95,17 +89,17 @@
       RETURNING *;
     `;
 
-    const values = [
-      marcaData.vnombre_marca,
-      marcaData.bactivo !== undefined ? marcaData.bactivo : true
-    ];
+  const values = [
+    marcaData.vnombre_marca,
+    marcaData.bactivo !== undefined ? marcaData.bactivo : true
+  ];
 
-    const { rows } = await pool.query(query, values);
-    return rows[0];
-  };
+  const { rows } = await pool.query(query, values);
+  return rows[0];
+};
 
-  const updateMarca = async (id, marcaData) => {
-    const query = `
+const updateMarca = async (id, marcaData) => {
+  const query = `
       UPDATE public.tbl_marcas
       SET 
         vnombre_marca = COALESCE($2, vnombre_marca),
@@ -114,34 +108,34 @@
       RETURNING *;
     `;
 
-    const values = [
-      id,
-      marcaData.vnombre_marca,
-      marcaData.bactivo
-    ];
+  const values = [
+    id,
+    marcaData.vnombre_marca,
+    marcaData.bactivo
+  ];
 
-    const { rows } = await pool.query(query, values);
-    return rows[0] || null;
-  };
+  const { rows } = await pool.query(query, values);
+  return rows[0] || null;
+};
 
-  const deleteMarca = async (id) => {
-    const query = `
+const deleteMarca = async (id) => {
+  const query = `
       UPDATE public.tbl_marcas
       SET bactivo = false
       WHERE iid_marca = $1
       RETURNING *;
     `;
 
-    const { rows } = await pool.query(query, [id]);
-    return rows[0] || null;
-  };
+  const { rows } = await pool.query(query, [id]);
+  return rows[0] || null;
+};
 
-  module.exports = {
-    getAllMarcas,
-    getMarcaById,
-    getMarcaByNombre,
-    getMarcasActivas,
-    createMarca,
-    updateMarca,
-    deleteMarca
-  };
+module.exports = {
+  getAllMarcas,
+  getMarcaById,
+  getMarcaByNombre,
+  getMarcasActivas,
+  createMarca,
+  updateMarca,
+  deleteMarca
+};

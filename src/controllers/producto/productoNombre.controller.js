@@ -32,8 +32,6 @@ const getProductoNombreByIdController = async (req, res) => {
 
 const createProductoNombreController = async (req, res) => {
     try {
-        console.log('Body recibido:', req.body);
-
         const { vnombre_producto, bactivo } = req.body;
 
         if (!vnombre_producto) {
@@ -43,7 +41,6 @@ const createProductoNombreController = async (req, res) => {
             });
         }
 
-        // Ya no pasas req aquí
         const nuevoProducto = await createProductoNombre({
             vnombre_producto,
             bactivo

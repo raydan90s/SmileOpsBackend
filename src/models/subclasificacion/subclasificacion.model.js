@@ -87,19 +87,17 @@ const getSubclasificacionesByClasificacion = async (iid_clasificacion) => {
 };
 
 const createSubclasificacion = async (subclasificacionData) => {
-  // Verificar si existe una subclasificación inactiva con el mismo código
   const checkQuery = `
     SELECT iid_subclasificacion, b_activo 
     FROM public.tbl_inv_subclasificacion 
     WHERE v_codigo = $1 AND iid_clasificacion = $2
   `;
-  
+
   const checkResult = await pool.query(checkQuery, [
     subclasificacionData.v_codigo,
     subclasificacionData.iid_clasificacion
   ]);
 
-  // Si existe y está inactiva, reactivarla
   if (checkResult.rows.length > 0 && !checkResult.rows[0].b_activo) {
     const updateQuery = `
       UPDATE public.tbl_inv_subclasificacion
@@ -116,14 +114,12 @@ const createSubclasificacion = async (subclasificacionData) => {
     return rows[0];
   }
 
-  // Si existe y está activa, lanzar error
   if (checkResult.rows.length > 0 && checkResult.rows[0].b_activo) {
     const error = new Error('Ya existe una subclasificación activa con ese código');
     error.code = '23505';
     throw error;
   }
 
-  // Si no existe, crear nueva
   const query = `
     INSERT INTO public.tbl_inv_subclasificacion (
       iid_clasificacion,

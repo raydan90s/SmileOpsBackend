@@ -1,5 +1,4 @@
 const pool = require('@config/dbSupabase');
-const { executeWithAudit } = require('@middlewares/auditoria.middleware');
 
 const getAllProveedores = async (itipo_proveedor) => {
   let query = `
@@ -75,169 +74,179 @@ const getDireccionesByProveedorId = async (iid_proveedor) => {
   return rows;
 };
 
-const createProveedor = async (proveedor, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const queryProveedor = `
-      INSERT INTO public.tbl_proveedores (
-        vnombre, vruc, vtelefono, vfax, vemail, 
-        itipo_proveedor, iid_pais, bactivo
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `;
-    const valuesProveedor = [
-      proveedor.vnombre,
-      proveedor.vruc,
-      proveedor.vtelefono || null,
-      proveedor.vfax || null,
-      proveedor.vemail || null,
-      proveedor.itipo_proveedor || 1,
-      proveedor.iid_pais,
-      proveedor.bactivo !== undefined ? proveedor.bactivo : true
-    ];
+const createProveedor = async (proveedor) => {
+  const queryProveedor = `
+    INSERT INTO public.tbl_proveedores (
+      vnombre, vruc, vtelefono, vfax, vemail, 
+      itipo_proveedor, iid_pais, bactivo
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;
+  `;
+  const valuesProveedor = [
+    proveedor.vnombre,
+    proveedor.vruc,
+    proveedor.vtelefono || null,
+    proveedor.vfax || null,
+    proveedor.vemail || null,
+    proveedor.itipo_proveedor || 1,
+    proveedor.iid_pais,
+    proveedor.bactivo !== undefined ? proveedor.bactivo : true
+  ];
 
-    const { rows: [proveedorCreado] } = await client.query(queryProveedor, valuesProveedor);
+  const { rows: [proveedorCreado] } = await pool.query(queryProveedor, valuesProveedor);
 
-    if (proveedor.establecimientos && proveedor.establecimientos.length > 0) {
-      const queryDireccion = `
-        INSERT INTO public.tbl_proveedores_direcciones (
-          iid_proveedor, v_direccion, v_tipo_direccion, b_activo
-        )
-        VALUES ($1, $2, $3, $4)
-      `;
-
-      for (const establecimiento of proveedor.establecimientos) {
-        await client.query(queryDireccion, [
-          proveedorCreado.iid_proveedor,
-          establecimiento.direccion,
-          establecimiento.tipo,
-          true
-        ]);
-      }
-    }
-
-    return proveedorCreado;
-  });
-};
-
-const updateProveedor = async (iid_proveedor, proveedor, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      UPDATE public.tbl_proveedores
-      SET 
-        vnombre = COALESCE($2, vnombre),
-        vruc = COALESCE($3, vruc),
-        vtelefono = COALESCE($4, vtelefono),
-        vfax = COALESCE($5, vfax),
-        vemail = COALESCE($6, vemail),
-        itipo_proveedor = COALESCE($7, itipo_proveedor),
-        iid_pais = COALESCE($8, iid_pais),
-        bactivo = COALESCE($9, bactivo)
-      WHERE iid_proveedor = $1
-      RETURNING *;
-    `;
-    const values = [
-      iid_proveedor,
-      proveedor.vnombre,
-      proveedor.vruc,
-      proveedor.vtelefono,
-      proveedor.vfax,
-      proveedor.vemail,
-      proveedor.itipo_proveedor,
-      proveedor.iid_pais,
-      proveedor.bactivo
-    ];
-    const { rows } = await client.query(query, values);
-
-    if (rows.length === 0) throw new Error('Proveedor no encontrado');
-
-    return rows[0];
-  });
-};
-
-const deleteProveedor = async (iid_proveedor, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      UPDATE public.tbl_proveedores 
-      SET bactivo = false 
-      WHERE iid_proveedor = $1 
-      RETURNING *;
-    `;
-    const { rows } = await client.query(query, [iid_proveedor]);
-
-    if (rows.length === 0) throw new Error('Proveedor no encontrado');
-
-    const queryDirecciones = `
-      UPDATE public.tbl_proveedores_direcciones 
-      SET b_activo = false 
-      WHERE iid_proveedor = $1
-    `;
-    await client.query(queryDirecciones, [iid_proveedor]);
-
-    return rows[0];
-  });
-};
-
-const createDireccion = async (direccion, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
+  if (proveedor.establecimientos && proveedor.establecimientos.length > 0) {
+    const queryDireccion = `
       INSERT INTO public.tbl_proveedores_direcciones (
         iid_proveedor, v_direccion, v_tipo_direccion, b_activo
       )
       VALUES ($1, $2, $3, $4)
-      RETURNING *;
     `;
-    const values = [
-      direccion.iid_proveedor,
-      direccion.v_direccion,
-      direccion.v_tipo_direccion,
-      direccion.b_activo !== undefined ? direccion.b_activo : true
-    ];
-    const { rows } = await client.query(query, values);
-    return rows[0];
-  });
+
+    for (const establecimiento of proveedor.establecimientos) {
+      await pool.query(queryDireccion, [
+        proveedorCreado.iid_proveedor,
+        establecimiento.direccion,
+        establecimiento.tipo,
+        true
+      ]);
+    }
+  }
+
+  return proveedorCreado;
 };
 
-const updateDireccion = async (iid_direccion, direccion, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      UPDATE public.tbl_proveedores_direcciones
-      SET 
-        v_direccion = COALESCE($2, v_direccion),
-        v_tipo_direccion = COALESCE($3, v_tipo_direccion),
-        b_activo = COALESCE($4, b_activo)
-      WHERE iid_direccion = $1
-      RETURNING *;
-    `;
-    const values = [
-      iid_direccion,
-      direccion.v_direccion,
-      direccion.v_tipo_direccion,
-      direccion.b_activo
-    ];
-    const { rows } = await client.query(query, values);
+const updateProveedor = async (iid_proveedor, proveedor) => {
+  const query = `
+    UPDATE public.tbl_proveedores
+    SET 
+      vnombre = COALESCE($2, vnombre),
+      vruc = COALESCE($3, vruc),
+      vtelefono = COALESCE($4, vtelefono),
+      vfax = COALESCE($5, vfax),
+      vemail = COALESCE($6, vemail),
+      itipo_proveedor = COALESCE($7, itipo_proveedor),
+      iid_pais = COALESCE($8, iid_pais),
+      bactivo = COALESCE($9, bactivo)
+    WHERE iid_proveedor = $1
+    RETURNING *;
+  `;
+  const values = [
+    iid_proveedor,
+    proveedor.vnombre,
+    proveedor.vruc,
+    proveedor.vtelefono,
+    proveedor.vfax,
+    proveedor.vemail,
+    proveedor.itipo_proveedor,
+    proveedor.iid_pais,
+    proveedor.bactivo
+  ];
+  const { rows } = await pool.query(query, values);
 
-    if (rows.length === 0) throw new Error('Dirección no encontrada');
+  if (rows.length === 0) throw new Error('Proveedor no encontrado');
 
-    return rows[0];
-  });
+  return rows[0];
 };
 
-const deleteDireccion = async (iid_direccion, req) => {
-  return executeWithAudit(pool, req, async (client) => {
-    const query = `
-      UPDATE public.tbl_proveedores_direcciones 
-      SET b_activo = false 
-      WHERE iid_direccion = $1 
-      RETURNING *;
-    `;
-    const { rows } = await client.query(query, [iid_direccion]);
+const deleteProveedor = async (iid_proveedor) => {
+  const query = `
+    UPDATE public.tbl_proveedores 
+    SET bactivo = false 
+    WHERE iid_proveedor = $1 
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [iid_proveedor]);
 
-    if (rows.length === 0) throw new Error('Dirección no encontrada');
+  if (rows.length === 0) throw new Error('Proveedor no encontrado');
 
-    return rows[0];
-  });
+  const queryDirecciones = `
+    UPDATE public.tbl_proveedores_direcciones 
+    SET b_activo = false 
+    WHERE iid_proveedor = $1
+  `;
+  await pool.query(queryDirecciones, [iid_proveedor]);
+
+  return rows[0];
 };
+
+const createDireccion = async (direccion) => {
+  const query = `
+    INSERT INTO public.tbl_proveedores_direcciones (
+      iid_proveedor, v_direccion, v_tipo_direccion, b_activo
+    )
+    VALUES ($1, $2, $3, $4)
+    RETURNING *;
+  `;
+  const values = [
+    direccion.iid_proveedor,
+    direccion.v_direccion,
+    direccion.v_tipo_direccion,
+    direccion.b_activo !== undefined ? direccion.b_activo : true
+  ];
+  const { rows } = await pool.query(query, values);
+  return rows[0];
+};
+
+const updateDireccion = async (iid_direccion, direccion) => {
+  const query = `
+    UPDATE public.tbl_proveedores_direcciones
+    SET 
+      v_direccion = COALESCE($2, v_direccion),
+      v_tipo_direccion = COALESCE($3, v_tipo_direccion),
+      b_activo = COALESCE($4, b_activo)
+    WHERE iid_direccion = $1
+    RETURNING *;
+  `;
+  const values = [
+    iid_direccion,
+    direccion.v_direccion,
+    direccion.v_tipo_direccion,
+    direccion.b_activo
+  ];
+  const { rows } = await pool.query(query, values);
+
+  if (rows.length === 0) throw new Error('Dirección no encontrada');
+
+  return rows[0];
+};
+
+const deleteDireccion = async (iid_direccion) => {
+  const query = `
+    UPDATE public.tbl_proveedores_direcciones 
+    SET b_activo = false 
+    WHERE iid_direccion = $1 
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [iid_direccion]);
+
+  if (rows.length === 0) throw new Error('Dirección no encontrada');
+
+  return rows[0];
+};
+
+const activateProveedor = async (iid_proveedor) => {
+  const query = `
+    UPDATE public.tbl_proveedores 
+    SET bactivo = true 
+    WHERE iid_proveedor = $1 
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [iid_proveedor]);
+
+  if (rows.length === 0) throw new Error('Proveedor no encontrado');
+
+  const queryDirecciones = `
+    UPDATE public.tbl_proveedores_direcciones 
+    SET b_activo = true 
+    WHERE iid_proveedor = $1
+  `;
+  await pool.query(queryDirecciones, [iid_proveedor]);
+
+  return rows[0];
+};
+
 
 module.exports = {
   getAllProveedores,
@@ -248,5 +257,6 @@ module.exports = {
   deleteProveedor,
   createDireccion,
   updateDireccion,
-  deleteDireccion
+  deleteDireccion,
+  activateProveedor
 };

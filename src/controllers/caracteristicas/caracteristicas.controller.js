@@ -8,10 +8,6 @@ const {
   deleteCaracteristica
 } = require('@models/caracteristicas/caracteristicas.model');
 
-// ============================================
-// CONTROLADORES DE SOLO LECTURA
-// ============================================
-
 const fetchAllCaracteristicas = async (req, res) => {
   try {
     const caracteristicas = await getAllCaracteristicas();
@@ -94,17 +90,12 @@ const fetchCaracteristicasActivas = async (req, res) => {
   }
 };
 
-// ============================================
-// CONTROLADORES DE ESCRITURA
-// ============================================
-
 const crearCaracteristicaController = async (req, res) => {
   try {
     const caracteristicaData = req.body;
 
-    // Validación básica
-    if (!caracteristicaData.vnombre_caracteristica || 
-        caracteristicaData.vnombre_caracteristica.trim() === '') {
+    if (!caracteristicaData.vnombre_caracteristica ||
+      caracteristicaData.vnombre_caracteristica.trim() === '') {
       return res.status(400).json({
         success: false,
         message: 'El nombre de la característica es requerido'
@@ -121,7 +112,6 @@ const crearCaracteristicaController = async (req, res) => {
   } catch (error) {
     console.error('Error al crear característica:', error);
 
-    // Manejo de error de nombre duplicado (constraint unique)
     if (error.code === '23505') {
       return res.status(409).json({
         success: false,
@@ -159,7 +149,6 @@ const actualizarCaracteristicaController = async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar característica:', error);
 
-    // Manejo de error de nombre duplicado
     if (error.code === '23505') {
       return res.status(409).json({
         success: false,

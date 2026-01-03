@@ -55,16 +55,14 @@ const getClasificacionesActivas = async () => {
 };
 
 const createClasificacion = async (clasificacionData) => {
-  // Verificar si existe una clasificación inactiva con la misma descripción
   const checkQuery = `
     SELECT iid_clasificacion, b_activo 
     FROM public.tbl_inv_clasificacion 
     WHERE v_descripcion = $1
   `;
-  
+
   const checkResult = await pool.query(checkQuery, [clasificacionData.v_descripcion]);
 
-  // Si existe y está inactiva, reactivarla
   if (checkResult.rows.length > 0 && !checkResult.rows[0].b_activo) {
     const updateQuery = `
       UPDATE public.tbl_inv_clasificacion
@@ -76,14 +74,12 @@ const createClasificacion = async (clasificacionData) => {
     return rows[0];
   }
 
-  // Si existe y está activa, lanzar error
   if (checkResult.rows.length > 0 && checkResult.rows[0].b_activo) {
     const error = new Error('Ya existe una clasificación activa con esa descripción');
     error.code = '23505';
     throw error;
   }
 
-  // Si no existe, crear nueva
   const query = `
     INSERT INTO public.tbl_inv_clasificacion (
       v_descripcion,

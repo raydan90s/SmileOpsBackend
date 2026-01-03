@@ -7,7 +7,8 @@ const {
   deleteProveedor,
   createDireccion,
   updateDireccion,
-  deleteDireccion
+  deleteDireccion,
+  activateProveedor
 } = require('@models/proveedores/proveedores.model');
 
 const fetchAllProveedores = async (req, res) => {
@@ -148,6 +149,27 @@ const deleteDireccionController = async (req, res) => {
   }
 };
 
+const activateProveedorController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const proveedorActivado = await activateProveedor(parseInt(id), req);
+
+    res.status(200).json({
+      success: true,
+      message: 'Proveedor activado correctamente',
+      data: proveedorActivado
+    });
+  } catch (err) {
+    console.error('Error activando proveedor:', err);
+
+    if (err.message === 'Proveedor no encontrado') {
+      return res.status(404).json({ success: false, message: err.message });
+    }
+
+    res.status(500).json({ success: false, message: 'Error al activar proveedor' });
+  }
+};
+
 module.exports = {
   fetchAllProveedores,
   getProveedorByIdController,
@@ -157,5 +179,6 @@ module.exports = {
   deleteProveedorController,
   createDireccionController,
   updateDireccionController,
-  deleteDireccionController
+  deleteDireccionController,
+  activateProveedorController
 };

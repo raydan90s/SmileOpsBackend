@@ -52,7 +52,7 @@ const createBodegaController = async (req, res) => {
     res.status(201).json({ success: true, data: nuevaBodega });
   } catch (err) {
     console.error('Error creando bodega:', err);
-    if (err.code === '23505') { // Código PostgreSQL para Unique Violation
+    if (err.code === '23505') {
       return res.status(400).json({ success: false, message: 'Ya existe una bodega con ese nombre' });
     }
     if (err.message && err.message.includes('Usuario no identificado')) {

@@ -120,7 +120,6 @@ const obtenerPacientePorNombre = async (req, res) => {
 
 const crearPacienteController = async (req, res) => {
   try {
-    console.log(req.body);
     const pacienteData = req.body;
 
     const nuevoPaciente = await createPaciente(pacienteData, req);

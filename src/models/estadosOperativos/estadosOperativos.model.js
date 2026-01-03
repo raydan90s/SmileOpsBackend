@@ -1,9 +1,5 @@
 const pool = require('@config/dbSupabase');
 
-// ============================================
-// OPERACIONES DE SOLO LECTURA (Sin auditoría)
-// ============================================
-
 const getAllEstadosOperativos = async () => {
   const query = `
     SELECT 
@@ -66,12 +62,7 @@ const getEstadosOperativosActivos = async () => {
   return rows;
 };
 
-// ============================================
-// OPERACIONES DE ESCRITURA (Sin auditoría)
-// ============================================
-
 const createEstadoOperativo = async (estadoData) => {
-  // Verificar si existe un estado inactivo con el mismo nombre
   const checkQuery = `
     SELECT iid_estado_operativo, bactivo 
     FROM public.tbl_estados_operativos 
@@ -79,7 +70,6 @@ const createEstadoOperativo = async (estadoData) => {
   `;
   const checkResult = await pool.query(checkQuery, [estadoData.vnombre_estado]);
 
-  // Si existe y está inactivo, reactivarlo
   if (checkResult.rows.length > 0 && !checkResult.rows[0].bactivo) {
     const updateQuery = `
       UPDATE public.tbl_estados_operativos
@@ -96,14 +86,12 @@ const createEstadoOperativo = async (estadoData) => {
     return rows[0];
   }
 
-  // Si existe y está activo, lanzar error
   if (checkResult.rows.length > 0 && checkResult.rows[0].bactivo) {
     const error = new Error('Ya existe un estado operativo activo con ese nombre');
     error.code = '23505';
     throw error;
   }
 
-  // Si no existe, crear nuevo
   const query = `
     INSERT INTO public.tbl_estados_operativos (
       vnombre_estado,

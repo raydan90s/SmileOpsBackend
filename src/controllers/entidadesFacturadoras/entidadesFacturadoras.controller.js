@@ -102,7 +102,6 @@ const createEntidadController = async (req, res) => {
             v_email
         } = req.body;
 
-        // Validaciones
         if (!v_ruc || !v_razon_social) {
             return res.status(400).json({
                 success: false,

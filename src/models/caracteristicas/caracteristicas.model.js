@@ -1,9 +1,4 @@
 const pool = require('@config/dbSupabase');
-const { executeWithAudit } = require('@middlewares/auditoria.middleware');
-
-// ============================================
-// OPERACIONES DE SOLO LECTURA (Sin auditoría)
-// ============================================
 
 const getAllCaracteristicas = async () => {
   const query = `
@@ -59,12 +54,7 @@ const getCaracteristicasActivas = async () => {
   return rows;
 };
 
-// ============================================
-// OPERACIONES DE ESCRITURA (Sin auditoría)
-// ============================================
-
 const createCaracteristica = async (caracteristicaData) => {
-  // Verificar si existe una característica inactiva con el mismo nombre
   const checkQuery = `
     SELECT iid_caracteristica, bactivo 
     FROM public.tbl_caracteristicas 
@@ -72,7 +62,6 @@ const createCaracteristica = async (caracteristicaData) => {
   `;
   const checkResult = await pool.query(checkQuery, [caracteristicaData.vnombre_caracteristica]);
 
-  // Si existe y está inactiva, reactivarla
   if (checkResult.rows.length > 0 && !checkResult.rows[0].bactivo) {
     const updateQuery = `
       UPDATE public.tbl_caracteristicas
@@ -84,14 +73,12 @@ const createCaracteristica = async (caracteristicaData) => {
     return rows[0];
   }
 
-  // Si existe y está activa, lanzar error
   if (checkResult.rows.length > 0 && checkResult.rows[0].bactivo) {
     const error = new Error('Ya existe una característica activa con ese nombre');
     error.code = '23505';
     throw error;
   }
 
-  // Si no existe, crear nueva
   const query = `
     INSERT INTO public.tbl_caracteristicas (
       vnombre_caracteristica,

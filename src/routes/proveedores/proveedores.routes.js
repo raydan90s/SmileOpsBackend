@@ -9,7 +9,8 @@ const {
   deleteProveedorController,
   createDireccionController,
   updateDireccionController,
-  deleteDireccionController
+  deleteDireccionController,
+  activateProveedorController
 } = require('@controllers/proveedores/proveedores.controller');
 
 router.get('/', fetchAllProveedores);
@@ -22,5 +23,6 @@ router.get('/:id/direcciones', getDireccionesProveedorController);
 router.post('/direcciones', createDireccionController);
 router.put('/direcciones/:id', updateDireccionController);
 router.delete('/direcciones/:id', deleteDireccionController);
+router.patch('/:id/activar', activateProveedorController);
 
 module.exports = router;
